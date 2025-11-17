@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>A Thousand Years - Love Lyrics Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f7f7ff;
+      background: radial-gradient(circle at top, #f9a8d4 0, transparent 60%),
+        radial-gradient(circle at bottom, #38bdf8 0, transparent 60%),
+        linear-gradient(135deg, #020617, #0f172a);
+      overflow: hidden;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        overflow-y: auto;
+        align-items: flex-start;
+        padding: 12px 0;
+      }
+    }
+
+    .floating-orb {
+      position: fixed;
+      width: 400px;
+      height: 400px;
+      border-radius: 999px;
+      filter: blur(80px);
+      opacity: 0.6;
+      z-index: -2;
+      animation: float 16s ease-in-out infinite alternate;
+    }
+
+    .floating-orb.orb-1 {
+      background: #f97316;
+      top: -80px;
+      left: -80px;
+    }
+
+    .floating-orb.orb-2 {
+      background: #6366f1;
+      bottom: -80px;
+      right: -40px;
+      animation-duration: 22s;
+    }
+
+    @keyframes float {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(40px, -40px); }
+    }
+
+    .player-wrapper {
+      position: relative;
+      width: min(1100px, 95vw);
+      height: min(650px, 92vh);
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr);
+      gap: 24px;
+      padding: 26px;
+      border-radius: 32px;
+      background: radial-gradient(circle at top left, rgba(248, 187, 208, 0.25), transparent 60%),
+        linear-gradient(135deg, rgba(24, 31, 55, 0.95), rgba(24, 31, 55, 0.9));
+      backdrop-filter: blur(28px);
+      border: 1px solid rgba(244, 114, 182, 0.4);
+      box-shadow:
+        0 24px 60px rgba(15, 23, 42, 0.9),
+        0 0 0 1px rgba(15, 23, 42, 0.9);
+      overflow: hidden;
+    }
+
+    @media (max-width: 900px) {
+      .player-wrapper {
+        grid-template-columns: 1fr;
+        height: auto;
+        max-height: none;
+        width: 94vw;
+        padding: 18px 16px 16px;
+        border-radius: 24px;
+        margin: 10px auto;
+      }
+    }
+
+    .left-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      padding: 8px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(24, 31, 55, 0.9);
+      border: 1px solid rgba(244, 114, 182, 0.7);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      animation: slide-up 0.7s ease-out forwards;
+      opacity: 0;
+      transform: translateY(8px);
+      animation-delay: 0.3s;
+    }
+
+    .badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #fb7185;
+      box-shadow: 0 0 12px #fb7185;
+    }
+
+    .song-title {
+      font-size: clamp(24px, 3vw, 30px);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-top: 8px;
+      animation: slide-up 0.7s ease-out forwards;
+      opacity: 0;
+      transform: translateY(8px);
+      animation-delay: 0.5s;
+    }
+
+    .song-artist {
+      font-size: 16px;
+      opacity: 0.85;
+      margin-top: 4px;
+      animation: slide-up 0.7s ease-out forwards;
+      opacity: 0;
+      transform: translateY(8px);
+      animation-delay: 0.7s;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      animation: slide-up 0.7s ease-out forwards;
+      opacity: 0;
+      transform: translateY(8px);
+      animation-delay: 0.9s;
+    }
+
+    .chip {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(244, 114, 182, 0.7);
+      opacity: 0.95;
+      background: rgba(24, 31, 55, 0.95);
+    }
+
+    /* ==== SLIDESHOW LOVE PHOTOS ==== */
+    .slideshow {
+      margin-top: 14px;
+      border-radius: 24px;
+      padding: 10px 10px 12px;
+      background: radial-gradient(circle at top, rgba(251, 113, 133, 0.15), transparent 60%),
+        rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(248, 187, 208, 0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      animation: slide-up 0.7s ease-out forwards;
+      opacity: 0;
+      transform: translateY(10px);
+      animation-delay: 1.1s;
+    }
+
+    .slideshow-image-wrapper {
+      position: relative;
+      border-radius: 18px;
+      background: radial-gradient(circle at center, #020617, #020617);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 260px;
+    }
+
+    @media (min-width: 1024px) {
+      .slideshow-image-wrapper {
+        height: 280px;
+      }
+    }
+
+    .slideshow-image {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain; /* ❗ Không cắt ảnh */
+      display: block;
+      opacity: 0;
+      transform: scale(1.03);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+    }
+
+    .slideshow-image.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .slideshow-gradient {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(248, 250, 252, 0.08), transparent 70%);
+      pointer-events: none;
+    }
+
+    .slideshow-caption {
+      margin-top: 6px;
+      font-size: 13px;
+      line-height: 1.5;
+      opacity: 0.95;
+    }
+
+    .slideshow-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      opacity: 0.8;
+      margin-top: 2px;
+    }
+
+    .slideshow-counter {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ==== CONTROLS (LOVE THEME) ==== */
+    .controls {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    @media (max-width: 900px) {
+      .controls {
+        margin-top: 14px;
+      }
+    }
+
+    .time-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      opacity: 0.8;
+    }
+
+    .progress-track {
+      position: relative;
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(30, 41, 59, 0.9);
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .progress-buffer {
+      position: absolute;
+      inset: 0;
+      width: 0%;
+      background: linear-gradient(
+        90deg,
+        rgba(244, 114, 182, 0.35),
+        rgba(248, 187, 208, 0.1)
+      );
+      pointer-events: none;
+    }
+
+    .progress-bar {
+      position: absolute;
+      inset: 0;
+      width: 0%;
+      background: linear-gradient(90deg, #fb7185, #f97316, #ec4899);
+      box-shadow: 0 0 12px rgba(248, 113, 113, 0.85);
+      pointer-events: none;
+    }
+
+    .progress-thumb {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: #f9fafb;
+      box-shadow:
+        0 0 0 4px rgba(248, 187, 208, 0.7),
+        0 0 14px rgba(248, 113, 113, 0.9);
+      left: 0%;
+      pointer-events: none;
+    }
+
+    .buttons-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 4px;
+    }
+
+    .left-buttons,
+    .right-buttons {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      border: 1px solid rgba(248, 187, 208, 0.9);
+      background: radial-gradient(circle at top, #f9a8d4, #c4b5fd);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease,
+        background 0.12s ease, border-color 0.12s ease;
+      font-size: 18px;
+      color: #111827;
+    }
+
+    .btn-icon:hover {
+      transform: translateY(-1px) scale(1.05);
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.95);
+      border-color: rgba(251, 113, 133, 1);
+      background: radial-gradient(circle at top, #fecaca, #f9a8d4);
+    }
+
+    .btn-icon:active {
+      transform: translateY(1px) scale(0.97);
+      box-shadow: none;
+    }
+
+    .btn-primary {
+      width: 54px;
+      height: 54px;
+      font-size: 22px;
+      background: radial-gradient(circle at top, #fb7185, #ec4899);
+      border-color: rgba(251, 113, 133, 1);
+      box-shadow:
+        0 0 22px rgba(248, 113, 113, 0.95),
+        0 14px 30px rgba(15, 23, 42, 0.95);
+      color: #0b1120;
+    }
+
+    .btn-primary.paused {
+      background: radial-gradient(circle at top, #22c55e, #16a34a);
+      box-shadow:
+        0 0 22px rgba(34, 197, 94, 0.95),
+        0 14px 30px rgba(15, 23, 42, 0.95);
+      color: #022c22;
+    }
+
+    .volume-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 110px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(30, 41, 59, 0.9);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: #f9fafb;
+      box-shadow:
+        0 0 0 3px rgba(248, 187, 208, 0.7),
+        0 0 10px rgba(248, 113, 113, 0.8);
+    }
+
+    .volume-slider::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      background: #f9fafb;
+      border: none;
+      box-shadow:
+        0 0 0 3px rgba(248, 187, 208, 0.7),
+        0 0 10px rgba(248, 113, 113, 0.8);
+    }
+
+    .volume-slider::-webkit-slider-runnable-track,
+    .volume-slider::-moz-range-track {
+      border-radius: 999px;
+      background: linear-gradient(90deg, #fb7185, #ec4899);
+    }
+
+    .mini-text {
+      font-size: 11px;
+      opacity: 0.78;
+    }
+
+    /* ===== RIGHT: LYRICS ===== */
+    .lyrics-panel {
+      position: relative;
+      border-radius: 24px;
+      padding: 18px 18px 16px;
+      background: radial-gradient(circle at top right, rgba(244, 114, 182, 0.3), transparent 60%),
+        linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.96));
+      border: 1px solid rgba(248, 187, 208, 0.6);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      animation: slide-up 0.7s ease-out forwards;
+      opacity: 0;
+      transform: translateY(12px);
+      animation-delay: 1.3s;
+    }
+
+    .lyrics-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+
+    .lyrics-header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .lyrics-title {
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      opacity: 0.9;
+    }
+
+    .lyrics-sub {
+      font-size: 11px;
+      opacity: 0.7;
+    }
+
+    .lyrics-mode-pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(248, 187, 208, 0.7);
+      background: rgba(24, 31, 55, 0.98);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      opacity: 0.9;
+    }
+
+    .lyrics-scroll {
+      flex: 1;
+      margin-top: 4px;
+      border-radius: 16px;
+      background: radial-gradient(circle at top left, rgba(59, 130, 246, 0.4), transparent 60%),
+        rgba(15, 23, 42, 0.98);
+      border: 1px solid rgba(59, 130, 246, 0.8);
+      padding: 14px 14px 16px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      position: relative;
+      box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.9);
+    }
+
+    .lyrics-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .lyrics-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .lyrics-scroll::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.7);
+      border-radius: 999px;
+    }
+
+    .lyrics-line {
+      font-size: 14px;
+      line-height: 1.7;
+      opacity: 0.8;
+      transition: opacity 0.15s ease, transform 0.15s ease, text-shadow 0.15s ease;
+      white-space: pre-wrap;
+    }
+
+    .lyrics-line + .lyrics-line {
+      margin-top: 2px;
+    }
+
+    .lyrics-line.section {
+      margin-top: 12px;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      opacity: 0.7;
+    }
+
+    .lyrics-line.active-line {
+      opacity: 1;
+      transform: translateX(4px);
+      text-shadow:
+        0 0 18px rgba(96, 165, 250, 0.9),
+        0 0 4px rgba(15, 23, 42, 0.9);
+    }
+
+    .lyrics-word {
+      transition: color 0.15s ease, text-shadow 0.15s ease, opacity 0.15s ease;
+      opacity: 0.6;
+    }
+
+    .lyrics-word.passed {
+      opacity: 1;
+      color: #f9a8d4;
+    }
+
+    .lyrics-word.active {
+      color: #f97316;
+      text-shadow: 0 0 10px rgba(249, 115, 22, 0.9);
+    }
+
+    .lyrics-fade {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 40px;
+      background: linear-gradient(to top, rgba(15, 23, 42, 0.98), transparent);
+      pointer-events: none;
+    }
+
+    .lyrics-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      opacity: 0.82;
+      margin-top: 4px;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #fb7185;
+      box-shadow: 0 0 12px rgba(248, 113, 113, 0.9);
+      animation: pulse 1.6s ease-out infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 1; }
+      100% { transform: scale(1.6); opacity: 0; }
+    }
+
+    .pulse-dot-wrapper {
+      position: relative;
+      width: 10px;
+      height: 10px;
+    }
+
+    .pulse-dot-wrapper::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      border: 1px solid rgba(248, 113, 113, 0.5);
+      animation: pulse 1.6s ease-out infinite;
+    }
+
+    /* ========= INTRO OVERLAY ========= */
+    .intro-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.97), rgba(15, 23, 42, 0.98));
+      z-index: 30;
+      color: #e5e7eb;
+      padding: 24px;
+      transition: opacity 1.1s ease, visibility 1.1s ease;
+    }
+
+    .intro-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .intro-inner {
+      max-width: 420px;
+      border-radius: 28px;
+      background: radial-gradient(circle at top, rgba(251, 191, 36, 0.15), transparent 70%),
+        rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(248, 187, 208, 0.7);
+      padding: 20px 20px 18px;
+      box-shadow: 0 22px 50px rgba(0,0,0,0.85);
+      text-align: left;
+    }
+
+    .intro-line {
+      font-size: 13px;
+      line-height: 1.6;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: slide-up 0.7s ease-out forwards;
+    }
+
+    .intro-line:nth-child(1) { animation-delay: 0.2s; }
+    .intro-line:nth-child(2) { animation-delay: 0.7s; }
+    .intro-line:nth-child(3) { animation-delay: 1.2s; }
+
+    .intro-line span.en-tag {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      opacity: 0.75;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .intro-line span.vi-tag {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      opacity: 0.75;
+      display: block;
+      margin-top: 8px;
+    }
+
+    .intro-main {
+      margin-top: 14px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #fef9c3;
+      white-space: nowrap;
+      overflow: hidden;
+      border-right: 2px solid rgba(251, 191, 36, 0.9);
+      width: 0;
+      animation:
+        typing 5.5s steps(40, end) 1.7s forwards,
+        blink-caret 0.8s step-end infinite 1.7s;
+    }
+
+    .intro-highlight {
+      color: #fbbf24;
+    }
+
+    .intro-small-note {
+      margin-top: 12px;
+      font-size: 11px;
+      opacity: 0.75;
+      animation: fade-in-soft 1s ease-out forwards;
+      animation-delay: 3.8s;
+      opacity: 0;
+    }
+
+    @keyframes slide-up {
+      0% {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes typing {
+      from { width: 0; }
+      to   { width: 100%; }
+    }
+
+    @keyframes blink-caret {
+      from, to { border-color: transparent; }
+      50%      { border-color: rgba(251, 191, 36, 0.9); }
+    }
+
+    @keyframes fade-in-soft {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* Overlay khi autoplay bị chặn */
+    .tap-overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at top, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.98));
+      z-index: 20;
+      color: #e5e7eb;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .tap-overlay.hidden {
+      display: none;
+    }
+
+    .tap-box {
+      max-width: 320px;
+      border-radius: 24px;
+      background: radial-gradient(circle at top, rgba(251, 191, 36, 0.1), transparent 70%),
+        rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      padding: 20px 18px 18px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+    }
+
+    .tap-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .tap-desc {
+      font-size: 13px;
+      opacity: 0.8;
+      margin-bottom: 14px;
+    }
+
+    .tap-button {
+      margin-top: 4px;
+      width: 100%;
+      border-radius: 999px;
+      border: none;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      background: radial-gradient(circle at top, #fb7185, #ec4899);
+      color: #0b1120;
+      box-shadow: 0 10px 20px rgba(15,23,42,0.9);
+    }
+
+    .tap-button:active {
+      transform: translateY(1px);
+      box-shadow: none;
+    }
+
+    @media (max-width: 480px) {
+      .intro-inner {
+        padding: 18px 16px 16px;
+        max-width: 90vw;
+      }
+      .intro-main {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="floating-orb orb-1"></div>
+  <div class="floating-orb orb-2"></div>
+
+  <!-- INTRO OVERLAY LOVE THEME SONG NGỮ -->
+  <div class="intro-overlay" id="intro-overlay">
+    <div class="intro-inner">
+      <p class="intro-line">
+        <span class="en-tag">EN</span>
+        In this little corner of the internet, I kept a song and nineteen photos
+        just for you.
+        <span class="vi-tag">VI</span>
+        Ở góc nhỏ trên mạng này, anh giữ một bài hát và mười chín bức ảnh chỉ riêng dành cho em.
+      </p>
+      <p class="intro-line" style="margin-top: 10px;">
+        <span class="en-tag">EN</span>
+        Every note, every picture is a quiet way of saying:
+        my heart has chosen you, again and again.
+        <span class="vi-tag">VI</span>
+        Mỗi giai điệu, mỗi tấm hình đều là cách nhẹ nhàng để nói rằng:
+        trái tim anh chọn em, hết lần này tới lần khác.
+      </p>
+      <p class="intro-line" style="margin-top: 10px;">
+        <span class="en-tag">EN</span>
+        Tonight, let this song play, and let our memories softly appear one by one.
+        <span class="vi-tag">VI</span>
+        Tối nay, hãy để bài hát này vang lên,
+        và để từng kỷ niệm của chúng ta chậm rãi hiện ra.
+      </p>
+
+      <div class="intro-main">
+        Our love, <span class="intro-highlight">softly playing on repeat.</span>
+      </div>
+
+      <div class="intro-small-note">
+        (Tap anywhere to begin · Chạm vào màn hình để bắt đầu nghe và xem lại chúng ta.)
+      </div>
+    </div>
+  </div>
+
+  <!-- Overlay nếu browser chặn autoplay -->
+  <div class="tap-overlay hidden" id="tap-overlay">
+    <div class="tap-box">
+      <div class="tap-title">Tap to play our song 🎵</div>
+      <div class="tap-desc">
+        Your browser blocked autoplay with sound.<br/>
+        Tap the button below to start the music and the moment.
+      </div>
+      <button class="tap-button" id="tap-button">Play music & begin</button>
+    </div>
+  </div>
+
+  <div class="player-wrapper">
+    <!-- LEFT -->
+    <div class="left-panel">
+      <div>
+        <div class="badge">
+          <span class="badge-dot"></span>
+          <span>Now playing for us</span>
+        </div>
+
+        <h1 class="song-title">A Thousand Years</h1>
+        <p class="song-artist">Christina Perri</p>
+
+        <div class="chip-row">
+          <span class="chip">Our love theme</span>
+          <span class="chip">Endless & patient</span>
+          <span class="chip">Forever and always</span>
+        </div>
+
+        <!-- Slideshow 19 ảnh người yêu -->
+        <div class="slideshow">
+          <div class="slideshow-image-wrapper">
+            <img id="slide-image" class="slideshow-image" src="" alt="My love photo" />
+            <div class="slideshow-gradient"></div>
+          </div>
+          <div class="slideshow-caption" id="slide-caption"></div>
+          <div class="slideshow-meta">
+            <span>Every photo is a little piece of our story.</span>
+            <span class="slideshow-counter" id="slide-counter">1 / 19</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controls">
+        <div class="time-row">
+          <span id="current-time">0:00</span>
+          <span id="total-duration">0:00</span>
+        </div>
+
+        <div class="progress-track" id="progress-track">
+          <div class="progress-buffer" id="progress-buffer"></div>
+          <div class="progress-bar" id="progress-bar"></div>
+          <div class="progress-thumb" id="progress-thumb"></div>
+        </div>
+
+        <div class="buttons-row">
+          <div class="left-buttons">
+            <button class="btn-icon" id="btn-back-10" title="Rewind 10 seconds of our song">«</button>
+            <button class="btn-icon btn-primary" id="btn-play" title="Play / Pause">
+              ❤
+            </button>
+            <button class="btn-icon" id="btn-forward-10" title="Skip 10 seconds forward">»</button>
+          </div>
+
+          <div class="right-buttons">
+            <span class="mini-text">Volume 💗</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value="0.85"
+              class="volume-slider"
+              id="volume-slider"
+            />
+          </div>
+        </div>
+
+        <div class="mini-text" style="margin-top: 2px;">
+          Tip: Click the progress bar to seek · Let the song and photos tell your love story.
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: LYRICS KARAOKE -->
+    <div class="lyrics-panel">
+      <div class="lyrics-header">
+        <div class="lyrics-header-left">
+          <div class="lyrics-title">Lyrics · Karaoke Mode</div>
+          <div class="lyrics-sub">
+            Each word will light up with the music · Mỗi từ sẽ sáng lên theo giai điệu.
+          </div>
+        </div>
+
+        <div class="lyrics-mode-pill">
+          <span>🎤 Love karaoke</span>
+        </div>
+      </div>
+
+      <div class="lyrics-scroll" id="lyrics-container">
+        <div class="lyrics-fade"></div>
+      </div>
+
+      <div class="lyrics-footer">
+        <span>This page was made for someone very special. 💌</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="pulse-dot-wrapper">
+            <div class="pulse-dot"></div>
+          </div>
+          <span>Playing in high quality</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDIO -->
+  <audio id="audio-player" preload="metadata">
+    <source src="https://stream.nct.vn/Warner_Audio219/AThousandYears-ChristinaPerri-13922684.mp3?st=VQjc6mZYdgaJPHlvakcVew&e=1763917206&a=6&p=0&r=d8509f11914f1c14803ded2d60337f52" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <script>
+    // ========= 1. KARAOKE LYRICS (TỪNG TỪ) =========
+    // 👉 Bạn tự thay text bên dưới bằng lyric thật + time chính xác.
+    // time = số giây từ đầu bài (VD: 1 phút 23s -> 83).
+    // time = số giây từ đầu bài (VD: 1 phút 23s -> 83).
+const karaokeLines = [
+  {
+    label: "[Intro]",
+    words: [] // nếu không có chữ, cứ để trống
+  },
+  {
+    // "Heart beats fast"
+    words: [
+      { time: 21,   text: "Heart " },
+      { time: 22,   text: "beats " },
+      { time: 23,   text: "fast " }
+    ]
+  },
+  {
+    // "Colors and promises"
+    words: [
+      { time: 24.3, text: "Colors " },
+      { time: 25.5, text: "and " },
+      { time: 26.0, text: "pro" },
+      { time: 27.1, text: "mi" },
+      { time: 28.1, text: "ses " }
+    ]
+  },
+  {
+    // How to be brave? ...
+    words: [
+      { time: 29.7, text: "How to be brave? " },
+      { time: 32.0, text: "How can I love " },
+      { time: 34.0, text: "when I'm " },
+      { time: 35.9, text: "afraid " },
+      { time: 37.5, text: "to " },
+      { time: 38.7, text: "fall? " }
+    ]
+  },
+  {
+    // But watching you stand alone
+    words: [
+      { time: 40.0, text: "But watching " },
+      { time: 40.8, text: "you stand " },
+      { time: 42.8, text: "a" },
+      { time: 43.8, text: "lone " }
+    ]
+  },
+  {
+    // All of my doubt suddenly goes away somehow
+    words: [
+      { time: 45.0, text: "All of my doubt " },
+      { time: 47.8, text: "suddenly " },
+      { time: 49.0, text: "goes " },
+      { time: 50.0, text: "a" },
+      { time: 50.5, text: "way somehow " }
+    ]
+  },
+  {
+    // One step closer
+    words: [
+      { time: 54.0, text: "One " },
+      { time: 55.4, text: "step " },
+      { time: 56.5, text: "clo" },
+      { time: 59.5, text: "ser " }
+    ]
+  },
+  {
+    // I have died every day waiting for you
+    words: [
+      { time: 62.0, text: "I have died " },
+      { time: 63.0, text: "every day " },
+      { time: 64.0, text: "wait" },
+      { time: 65.2, text: "ing " },
+      { time: 65.5, text: "for you " }
+    ]
+  },
+  {
+    // Darling, don't be afraid
+    words: [
+      { time: 67.0, text: "Darling, don't " },
+      { time: 68.2, text: "be afraid " }
+    ]
+  },
+  {
+    // I have loved you for a thousand years
+    words: [
+      { time: 69.0, text: "I " },
+      { time: 70.3, text: "have loved you " },
+      { time: 71.9, text: "for a thou" },
+      { time: 73.8, text: "sand years " }
+    ]
+  },
+  {
+    // I'll love you for a thousand more
+    words: [
+      { time: 76.0, text: "I'll love you for a thou" },
+      { time: 78.8, text: "sand " },
+      { time: 80.3, text: "more " }
+    ]
+  },
+  {
+    // Time stands still
+    words: [
+      { time: 88.0, text: "Time " },
+      { time: 89.0, text: "stands " },
+      { time: 90.2, text: "still " }
+    ]
+  },
+  {
+    // Beauty in all she is
+    words: [
+      { time: 91.2, text: "Beauty " },
+      { time: 92.8, text: "in all " },
+      { time: 94.2, text: "she " },
+      { time: 95.8, text: "is " }
+    ]
+  },
+  {
+    // I will be brave
+    words: [
+      { time: 97.2, text: "I will be brave " }
+    ]
+  },
+  {
+    // I will not let anything take away
+    words: [
+      { time: 99.2, text: "I will not let anything " },
+      { time: 103.0, text: "take " },
+      { time: 104.5, text: "a" },
+      { time: 105.5, text: "way " }
+    ]
+  },
+ // ======= TỪ ĐÂY TRỞ ĐI: MỖI DÒNG LÀ 1 words: [] =======
+
+{
+  words: [
+    { time: 106.0, text: "lười sub quá vợ ơi vợ chịu khó lướt xem nha ❤️ " }
+  ]
+},
+{
+  words: [
+    { time: 110.0, text: "What's standing in front of me " }
+  ]
+},
+{
+  words: [
+    { time: 115.0, text: "Every breath, every hour has come to this " }
+  ]
+},
+{
+  words: [
+    { time: 120.0, text: "One step closer " }
+  ]
+},
+{
+  words: [
+    { time: 125.0, text: "I have died every day waiting for you " }
+  ]
+},
+{
+  words: [
+    { time: 130.0, text: "Darling, don't be afraid " }
+  ]
+},
+{
+  words: [
+    { time: 135.0, text: "I have loved you for a thousand years " }
+  ]
+},
+{
+  words: [
+    { time: 142.0, text: "I'll love you for a thousand more " }
+  ]
+},
+{
+  words: [
+    { time: 147.0, text: "And all along I believed I would find you " }
+  ]
+},
+{
+  words: [
+    { time: 153.0, text: "Time has brought your heart to me " }
+  ]
+},
+{
+  words: [
+    { time: 158.0, text: "I have loved you for a thousand years " }
+  ]
+},
+{
+  words: [
+    { time: 164.0, text: "I'll love you for a thousand more " }
+  ]
+},
+{
+  words: [
+    { time: 170.0, text: "One step closer " }
+  ]
+},
+{
+  words: [
+    { time: 173.0, text: "One step closer " }
+  ]
+},
+{
+  words: [
+    { time: 177.0, text: "I have died every day waiting for you " }
+  ]
+},
+{
+  words: [
+    { time: 183.0, text: "Darling, don't be afraid " }
+  ]
+},
+{
+  words: [
+    { time: 188.0, text: "I have loved you for a thousand years " }
+  ]
+},
+{
+  words: [
+    { time: 194.0, text: "I'll love you for a thousand more " }
+  ]
+},
+{
+  words: [
+    { time: 200.0, text: "And all along I believed I would find you " }
+  ]
+},
+{
+  words: [
+    { time: 206.0, text: "Time has brought your heart to me " }
+  ]
+},
+{
+  words: [
+    { time: 211.0, text: "I have loved you for a thousand years " }
+  ]
+},
+{
+  words: [
+    { time: 217.0, text: "I'll love you for a thousand more " }
+  ]
+}
+
+  // ... nếu muốn nữa thì bạn add tiếp, nhưng cơ bản là hết bài rồi
+];
+
+
+    const lyricsContainer = document.getElementById("lyrics-container");
+    let wordSpans = [];
+    let lineDivs = [];
+
+    function renderKaraokeLines() {
+      lyricsContainer.innerHTML = "";
+      wordSpans = [];
+      lineDivs = [];
+
+      karaokeLines.forEach((line) => {
+        if (line.label) {
+          const sectionDiv = document.createElement("div");
+          sectionDiv.className = "lyrics-line section";
+          sectionDiv.textContent = line.label.replace(/\[|\]/g, "");
+          lyricsContainer.appendChild(sectionDiv);
+          lineDivs.push(sectionDiv);
+        }
+
+        const lineDiv = document.createElement("div");
+        lineDiv.className = "lyrics-line";
+
+        line.words.forEach((w) => {
+          const span = document.createElement("span");
+          span.textContent = w.text;
+          span.dataset.time = w.time;
+          span.classList.add("lyrics-word");
+          lineDiv.appendChild(span);
+          wordSpans.push(span);
+        });
+
+        lyricsContainer.appendChild(lineDiv);
+        lineDivs.push(lineDiv);
+      });
+
+      const fade = document.createElement("div");
+      fade.className = "lyrics-fade";
+      lyricsContainer.appendChild(fade);
+    }
+
+    function highlightWords(currentTime) {
+      if (!wordSpans.length) return;
+
+      let last = null;
+
+      wordSpans.forEach((span) => {
+        const t = parseFloat(span.dataset.time);
+        if (t <= currentTime) {
+          last = span;
+          span.classList.add("passed");
+        } else {
+          span.classList.remove("passed", "active");
+        }
+      });
+
+      lineDivs.forEach((d) => d.classList.remove("active-line"));
+
+      if (last) {
+        last.classList.add("active");
+        const lineDiv = last.parentElement;
+        lineDiv.classList.add("active-line");
+
+        const containerHeight = lyricsContainer.clientHeight;
+        const elOffsetTop = lineDiv.offsetTop;
+        const elHeight = lineDiv.offsetHeight;
+
+        const targetScroll =
+          elOffsetTop - containerHeight / 2 + elHeight / 2;
+
+        const clamped = Math.max(
+          0,
+          Math.min(targetScroll, lyricsContainer.scrollHeight - containerHeight)
+        );
+        lyricsContainer.scrollTop = clamped;
+      }
+    }
+
+    renderKaraokeLines();
+
+    // ========= 2. SLIDESHOW 19 ẢNH =========
+    const slides = [
+      { src: "anh1.jpg",  caption: "From the first moment I saw you, my heart chose you." },
+      { src: "anh2.jpg",  caption: "Every smile of yours feels like sunrise in my world." },
+      { src: "anh3.jpg",  caption: "With you, even ordinary days become beautiful memories." },
+      { src: "anh4.jpg",  caption: "You are my favorite place to be, no matter where we are." },
+      { src: "anh5.jpg",  caption: "I don’t need a thousand years, just a lifetime next to you." },
+      { src: "anh6.jpg",  caption: "Your eyes are the safest home my heart has ever known." },
+      { src: "anh7.jpg",  caption: "Thank you for choosing me in this huge and noisy world." },
+      { src: "anh8.jpg",  caption: "When I hold your hand, the rest of the world disappears." },
+      { src: "anh9.jpg",  caption: "You are not just my love, you are my best friend too." },
+      { src: "anh10.jpg", caption: "I fall in love with you a little more every single day." },
+      { src: "anh11.jpg", caption: "Being with you feels like the song that never ends." },
+      { src: "anh12.jpg", caption: "I don’t know what the future holds, but I know I want you in it." },
+      { src: "anh13.jpg", caption: "In a world full of temporary things, you are my forever." },
+      { src: "anh14.jpg", caption: "Every little detail about you is my favorite story." },
+      { src: "anh15.jpg", caption: "You are my calm after every storm and my joy every morning." },
+      { src: "anh16.jpg", caption: "If I had to start over, I would always find my way back to you." },
+      { src: "anh17.jpg", caption: "Your laugh is the soundtrack of my happiest memories." },
+      { src: "anh18.jpg", caption: "Loving you is the easiest decision my heart ever made." },
+      { src: "anh19.jpg", caption: "No matter what happens, my love will always stay with you." }
+    ];
+
+    const slideImage   = document.getElementById("slide-image");
+    const slideCaption = document.getElementById("slide-caption");
+    const slideCounter = document.getElementById("slide-counter");
+
+    let currentSlideIndex = 0;
+    const SLIDE_INTERVAL_MS = 6500;
+
+    function showSlide(index) {
+      const slide = slides[index];
+      if (!slide) return;
+
+      slideImage.classList.remove("visible");
+
+      setTimeout(() => {
+        slideImage.src = slide.src;
+        slideImage.alt = slide.caption;
+        slideCaption.textContent = slide.caption;
+        slideCounter.textContent = `${index + 1} / ${slides.length}`;
+
+        requestAnimationFrame(() => {
+          slideImage.classList.add("visible");
+        });
+      }, 350);
+    }
+
+    function nextSlide() {
+      currentSlideIndex = (currentSlideIndex + 1) % slides.length;
+      showSlide(currentSlideIndex);
+    }
+
+    showSlide(currentSlideIndex);
+    setInterval(nextSlide, SLIDE_INTERVAL_MS);
+
+    // ========= 3. AUDIO PLAYER =========
+    const audio            = document.getElementById("audio-player");
+    const btnPlay          = document.getElementById("btn-play");
+    const btnBack10        = document.getElementById("btn-back-10");
+    const btnForward10     = document.getElementById("btn-forward-10");
+    const volumeSlider     = document.getElementById("volume-slider");
+
+    const currentTimeLabel   = document.getElementById("current-time");
+    const totalDurationLabel = document.getElementById("total-duration");
+
+    const progressTrack  = document.getElementById("progress-track");
+    const progressBar    = document.getElementById("progress-bar");
+    const progressThumb  = document.getElementById("progress-thumb");
+    const progressBuffer = document.getElementById("progress-buffer");
+
+    const tapOverlay   = document.getElementById("tap-overlay");
+    const tapButton    = document.getElementById("tap-button");
+    const introOverlay = document.getElementById("intro-overlay");
+
+    function formatTime(seconds) {
+      if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return m + ":" + (s < 10 ? "0" + s : s);
+    }
+
+    audio.addEventListener("loadedmetadata", () => {
+      totalDurationLabel.textContent = formatTime(audio.duration);
+    });
+
+    audio.addEventListener("timeupdate", () => {
+      currentTimeLabel.textContent = formatTime(audio.currentTime);
+      const percent = (audio.currentTime / audio.duration) * 100 || 0;
+      progressBar.style.width = percent + "%";
+      progressThumb.style.left = percent + "%";
+
+      highlightWords(audio.currentTime);
+    });
+
+    audio.addEventListener("progress", () => {
+      try {
+        if (audio.buffered.length > 0) {
+          const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
+          const percent = (bufferedEnd / audio.duration) * 100 || 0;
+          progressBuffer.style.width = percent + "%";
+        }
+      } catch (e) {}
+    });
+
+    audio.addEventListener("ended", () => {
+      btnPlay.textContent = "❤";
+      btnPlay.classList.remove("paused");
+    });
+
+    btnPlay.addEventListener("click", () => {
+      if (audio.paused) {
+        audio.play().then(() => {
+          btnPlay.textContent = "❚❚";
+          btnPlay.classList.add("paused");
+        }).catch(() => {
+          tapOverlay.classList.remove("hidden");
+        });
+      } else {
+        audio.pause();
+        btnPlay.textContent = "❤";
+        btnPlay.classList.remove("paused");
+      }
+    });
+
+    btnBack10.addEventListener("click", () => {
+      audio.currentTime = Math.max(0, audio.currentTime - 10);
+    });
+
+    btnForward10.addEventListener("click", () => {
+      audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10);
+    });
+
+    volumeSlider.addEventListener("input", () => {
+      audio.volume = parseFloat(volumeSlider.value);
+    });
+
+    progressTrack.addEventListener("click", (e) => {
+      const rect = progressTrack.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const ratio = x / rect.width;
+      audio.currentTime = ratio * (audio.duration || 0);
+    });
+
+    // Autoplay khi load (nếu được phép)
+    window.addEventListener("load", () => {
+      audio.volume = parseFloat(volumeSlider.value);
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => {
+            btnPlay.textContent = "❚❚";
+            btnPlay.classList.add("paused");
+          })
+          .catch(() => {
+            tapOverlay.classList.remove("hidden");
+          });
+      }
+    });
+
+    // Click vào màn intro: đọc xong rồi chạm mới vào, lúc này mới tắt intro + thử play nhạc
+    introOverlay.addEventListener("click", () => {
+      introOverlay.classList.add("hidden");
+
+      if (audio.paused) {
+        audio.play()
+          .then(() => {
+            btnPlay.textContent = "❚❚";
+            btnPlay.classList.add("paused");
+          })
+          .catch(() => {
+            tapOverlay.classList.remove("hidden");
+          });
+      }
+    });
+
+    tapButton.addEventListener("click", () => {
+      audio.play().then(() => {
+        btnPlay.textContent = "❚❚";
+        btnPlay.classList.add("paused");
+        tapOverlay.classList.add("hidden");
+      });
+    });
+  </script>
+</body>
+</html>
